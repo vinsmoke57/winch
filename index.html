@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>3D Manual Winch Mechanism</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0a0a0f;color:#e0e0e0;font-family:'Segoe UI',system-ui,sans-serif;overflow:hidden;height:100vh}
+#canvas-container{position:absolute;top:0;left:0;width:75%;height:100%}
+canvas{display:block}
+
+/* Right Panel */
+#panel{position:absolute;top:0;right:0;width:25%;height:100%;background:linear-gradient(180deg,#0d1117 0%,#161b22 50%,#0d1117 100%);border-left:1px solid #30363d;display:flex;flex-direction:column;overflow-y:auto}
+.panel-header{padding:20px;text-align:center;border-bottom:1px solid #30363d;background:linear-gradient(135deg,rgba(36,181,156,0.1),rgba(0,120,215,0.1))}
+.panel-header h1{font-size:1.3em;font-weight:700;background:linear-gradient(135deg,#24b59c,#0078d7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:4px}
+.panel-header p{font-size:0.75em;color:#8b949e}
+
+.section{padding:16px 20px;border-bottom:1px solid #21262d}
+.section-title{font-size:0.7em;text-transform:uppercase;letter-spacing:2px;color:#24b59c;margin-bottom:12px;font-weight:600}
+
+/* Controls */
+.control-group{margin-bottom:14px}
+.control-group label{display:block;font-size:0.8em;color:#c9d1d9;margin-bottom:6px}
+.control-group input[type=range]{width:100%;height:6px;-webkit-appearance:none;background:#21262d;border-radius:3px;outline:none}
+.control-group input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:linear-gradient(135deg,#24b59c,#1a8a74);cursor:pointer;box-shadow:0 0 8px rgba(36,181,156,0.4)}
+.control-value{font-size:0.85em;color:#24b59c;font-weight:600;float:right;margin-top:-22px}
+
+/* Data Display */
+.data-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.data-card{background:rgba(33,38,45,0.8);border:1px solid #30363d;border-radius:8px;padding:12px;text-align:center;transition:border-color 0.3s}
+.data-card:hover{border-color:#24b59c}
+.data-card .label{font-size:0.65em;text-transform:uppercase;letter-spacing:1px;color:#8b949e;margin-bottom:4px}
+.data-card .value{font-size:1.3em;font-weight:700;color:#e6edf3}
+.data-card .unit{font-size:0.65em;color:#58a6ff;margin-left:2px}
+.data-card.highlight .value{color:#24b59c}
+
+/* Buttons */
+.btn-row{display:flex;gap:8px;margin-top:8px}
+.btn{flex:1;padding:10px;border:1px solid #30363d;border-radius:6px;background:rgba(33,38,45,0.6);color:#c9d1d9;font-size:0.8em;cursor:pointer;transition:all 0.2s;text-align:center}
+.btn:hover{background:rgba(36,181,156,0.15);border-color:#24b59c;color:#24b59c}
+.btn.active{background:rgba(36,181,156,0.2);border-color:#24b59c;color:#24b59c}
+
+/* Status bar */
+.status-bar{margin-top:auto;padding:12px 20px;border-top:1px solid #30363d;background:rgba(13,17,23,0.8)}
+.status-indicator{display:flex;align-items:center;gap:8px;font-size:0.75em;color:#8b949e}
+.status-dot{width:8px;height:8px;border-radius:50%;background:#24b59c;box-shadow:0 0 6px rgba(36,181,156,0.6);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+
+/* Legend */
+.legend{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.legend-item{display:flex;align-items:center;gap:5px;font-size:0.7em;color:#8b949e}
+.legend-color{width:12px;height:12px;border-radius:3px}
+</style>
+</head>
+<body>
+<div id="canvas-container"></div>
+
+<div id="panel">
+  <div class="panel-header">
+    <h1>⚙️ 3D Manual Winch</h1>
+    <p>Interactive Mechanism Simulator</p>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Controls</div>
+    <div class="control-group">
+      <label>Crank Rotation Speed</label>
+      <input type="range" id="crankSpeed" min="0" max="100" value="0">
+      <div class="control-value" id="crankSpeedVal">0%</div>
+    </div>
+    <div class="control-group">
+      <label>Load Weight (kg)</label>
+      <input type="range" id="weight" min="10" max="500" value="100" step="10">
+      <div class="control-value" id="weightVal">100 kg</div>
+    </div>
+    <div class="control-group">
+      <label>Gear Ratio</label>
+      <input type="range" id="gearRatio" min="1" max="10" value="4" step="0.5">
+      <div class="control-value" id="gearRatioVal">4:1</div>
+    </div>
+    <div class="btn-row">
+      <div class="btn" id="btnCW" onclick="setDirection(1)">↻ CW</div>
+      <div class="btn active" id="btnStop" onclick="setDirection(0)">■ Stop</div>
+      <div class="btn" id="btnCCW" onclick="setDirection(-1)">↺ CCW</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Real-Time Data</div>
+    <div class="data-grid">
+      <div class="data-card highlight"><div class="label">Crank RPM</div><div class="value" id="dCrankRPM">0<span class="unit">rpm</span></div></div>
+      <div class="data-card highlight"><div class="label">Drum RPM</div><div class="value" id="dDrumRPM">0<span class="unit">rpm</span></div></div>
+      <div class="data-card"><div class="label">Input Torque</div><div class="value" id="dInputTorque">0<span class="unit">N·m</span></div></div>
+      <div class="data-card"><div class="label">Output Torque</div><div class="value" id="dOutputTorque">0<span class="unit">N·m</span></div></div>
+      <div class="data-card"><div class="label">Cable Speed</div><div class="value" id="dCableSpeed">0<span class="unit">m/s</span></div></div>
+      <div class="data-card"><div class="label">Power</div><div class="value" id="dPower">0<span class="unit">W</span></div></div>
+      <div class="data-card"><div class="label">Mech. Advantage</div><div class="value" id="dMA">4<span class="unit">x</span></div></div>
+      <div class="data-card"><div class="label">Efficiency</div><div class="value" id="dEfficiency">85<span class="unit">%</span></div></div>
+      <div class="data-card"><div class="label">Load Force</div><div class="value" id="dLoadForce">981<span class="unit">N</span></div></div>
+      <div class="data-card"><div class="label">Lift Height</div><div class="value" id="dLiftHeight">0.0<span class="unit">m</span></div></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Part Legend</div>
+    <div class="legend">
+      <div class="legend-item"><div class="legend-color" style="background:#ff6b35"></div>Frame</div>
+      <div class="legend-item"><div class="legend-color" style="background:#ffd700"></div>Crank Gear</div>
+      <div class="legend-item"><div class="legend-color" style="background:#58a6ff"></div>Drum Gear</div>
+      <div class="legend-item"><div class="legend-color" style="background:#c0c0c0"></div>Drum</div>
+      <div class="legend-item"><div class="legend-color" style="background:#24b59c"></div>Handle</div>
+      <div class="legend-item"><div class="legend-color" style="background:#da3633"></div>Cable</div>
+      <div class="legend-item"><div class="legend-color" style="background:#8b5cf6"></div>Weight</div>
+    </div>
+  </div>
+
+  <div class="status-bar">
+    <div class="status-indicator"><div class="status-dot"></div>Simulation Active — 60 FPS</div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+// === GLOBALS ===
+let scene, camera, renderer, controls;
+let crankGroup, crankGear, drumGear, drum, cableLine, weightMesh;
+let direction = 0, crankAngle = 0, liftHeight = 0;
+const efficiency = 0.85;
+const drumRadius = 0.4;
+const crankArmLength = 0.6;
+
+// === INIT ===
+function init() {
+  const container = document.getElementById('canvas-container');
+  scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x0a0a0f);
+  scene.fog = new THREE.FogExp2(0x0a0a0f, 0.04);
+
+  camera = new THREE.PerspectiveCamera(50, container.clientWidth / container.clientHeight, 0.1, 100);
+  camera.position.set(5, 4, 6);
+
+  renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setSize(container.clientWidth, container.clientHeight);
+  renderer.setPixelRatio(window.devicePixelRatio);
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  container.appendChild(renderer.domElement);
+
+  controls = new THREE.OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true;
+  controls.dampingFactor = 0.05;
+  controls.target.set(0, 1, 0);
+
+  // Lights
+  const amb = new THREE.AmbientLight(0x404060, 0.6);
+  scene.add(amb);
+  const dir = new THREE.DirectionalLight(0xffffff, 0.9);
+  dir.position.set(5, 8, 5);
+  dir.castShadow = true;
+  dir.shadow.mapSize.set(1024, 1024);
+  scene.add(dir);
+  const pt = new THREE.PointLight(0x24b59c, 0.5, 15);
+  pt.position.set(-3, 5, 3);
+  scene.add(pt);
+
+  // Grid
+  const grid = new THREE.GridHelper(20, 40, 0x1a1a2e, 0x1a1a2e);
+  scene.add(grid);
+
+  buildWinch();
+  animate();
+}
+
+// === GEAR TOOTH SHAPE ===
+function createGear(innerR, outerR, teeth, thickness, color) {
+  const group = new THREE.Group();
+  // Base disc
+  const discGeo = new THREE.CylinderGeometry(innerR, innerR, thickness, 32);
+  const mat = new THREE.MeshStandardMaterial({ color, metalness: 0.7, roughness: 0.3 });
+  const disc = new THREE.Mesh(discGeo, mat);
+  disc.rotation.x = 0;
+  group.add(disc);
+
+  // Teeth
+  const toothW = (2 * Math.PI * innerR / teeth) * 0.45;
+  const toothH = outerR - innerR;
+  const toothGeo = new THREE.BoxGeometry(toothW, thickness, toothH);
+  for (let i = 0; i < teeth; i++) {
+    const angle = (i / teeth) * Math.PI * 2;
+    const tooth = new THREE.Mesh(toothGeo, mat);
+    const r = innerR + toothH / 2;
+    tooth.position.set(Math.sin(angle) * r, 0, Math.cos(angle) * r);
+    tooth.rotation.y = -angle;
+    group.add(tooth);
+  }
+
+  // Center hub
+  const hubGeo = new THREE.CylinderGeometry(innerR * 0.2, innerR * 0.2, thickness * 1.4, 16);
+  const hubMat = new THREE.MeshStandardMaterial({ color: 0x333333, metalness: 0.9, roughness: 0.2 });
+  group.add(new THREE.Mesh(hubGeo, hubMat));
+
+  return group;
+}
+
+// === BUILD WINCH ===
+function buildWinch() {
+  const frameMat = new THREE.MeshStandardMaterial({ color: 0xff6b35, metalness: 0.6, roughness: 0.4 });
+
+  // Base plate
+  const base = new THREE.Mesh(new THREE.BoxGeometry(3, 0.15, 2), frameMat);
+  base.position.y = 0.075;
+  base.receiveShadow = true;
+  scene.add(base);
+
+  // Left pillar
+  const pillarGeo = new THREE.BoxGeometry(0.15, 2.5, 0.15);
+  const lp = new THREE.Mesh(pillarGeo, frameMat);
+  lp.position.set(-1.2, 1.4, 0);
+  lp.castShadow = true;
+  scene.add(lp);
+
+  // Right pillar
+  const rp = new THREE.Mesh(pillarGeo, frameMat);
+  rp.position.set(1.2, 1.4, 0);
+  rp.castShadow = true;
+  scene.add(rp);
+
+  // Top bar
+  const tb = new THREE.Mesh(new THREE.BoxGeometry(2.55, 0.12, 0.12), frameMat);
+  tb.position.set(0, 2.65, 0);
+  scene.add(tb);
+
+  // Cross braces
+  const braceMat = new THREE.MeshStandardMaterial({ color: 0xcc5522, metalness: 0.5, roughness: 0.5 });
+  const braceGeo = new THREE.BoxGeometry(0.06, 1.8, 0.06);
+  const b1 = new THREE.Mesh(braceGeo, braceMat);
+  b1.position.set(-1.2, 1.2, 0);
+  b1.rotation.z = 0.3;
+  scene.add(b1);
+  const b2 = new THREE.Mesh(braceGeo, braceMat);
+  b2.position.set(1.2, 1.2, 0);
+  b2.rotation.z = -0.3;
+  scene.add(b2);
+
+  // Axle
+  const axleMat = new THREE.MeshStandardMaterial({ color: 0x888888, metalness: 0.8, roughness: 0.2 });
+  const axle = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 3.2, 16), axleMat);
+  axle.rotation.z = Math.PI / 2;
+  axle.position.set(0, 2.0, 0);
+  scene.add(axle);
+
+  // Drum
+  const drumMat = new THREE.MeshStandardMaterial({ color: 0xc0c0c0, metalness: 0.7, roughness: 0.3 });
+  drum = new THREE.Mesh(new THREE.CylinderGeometry(drumRadius, drumRadius, 1.5, 32), drumMat);
+  drum.rotation.z = Math.PI / 2;
+  drum.position.set(0, 2.0, 0);
+  drum.castShadow = true;
+  scene.add(drum);
+
+  // Drum flanges
+  const flangeGeo = new THREE.CylinderGeometry(drumRadius + 0.12, drumRadius + 0.12, 0.05, 32);
+  const fl = new THREE.Mesh(flangeGeo, drumMat);
+  fl.rotation.z = Math.PI / 2;
+  fl.position.set(-0.75, 2.0, 0);
+  scene.add(fl);
+  const fr = new THREE.Mesh(flangeGeo, drumMat);
+  fr.rotation.z = Math.PI / 2;
+  fr.position.set(0.75, 2.0, 0);
+  scene.add(fr);
+
+  // Drum gear (large, on the left side)
+  drumGear = createGear(0.55, 0.7, 20, 0.12, 0x58a6ff);
+  drumGear.rotation.z = Math.PI / 2;
+  drumGear.position.set(-1.0, 2.0, 0);
+  scene.add(drumGear);
+
+  // Crank group (pinion gear + arm + handle)
+  crankGroup = new THREE.Group();
+  crankGroup.position.set(-1.0, 1.1, 0);
+  scene.add(crankGroup);
+
+  // Crank gear (small pinion)
+  crankGear = createGear(0.2, 0.3, 8, 0.12, 0xffd700);
+  crankGear.rotation.z = Math.PI / 2;
+  crankGroup.add(crankGear);
+
+  // Crank arm
+  const armMat = new THREE.MeshStandardMaterial({ color: 0x24b59c, metalness: 0.5, roughness: 0.4 });
+  const arm = new THREE.Mesh(new THREE.BoxGeometry(0.08, crankArmLength, 0.08), armMat);
+  arm.position.set(0, crankArmLength / 2, 0);
+  arm.castShadow = true;
+  crankGroup.add(arm);
+
+  // Handle knob
+  const knob = new THREE.Mesh(new THREE.SphereGeometry(0.08, 16, 16), armMat);
+  knob.position.set(0, crankArmLength, 0);
+  crankGroup.add(knob);
+
+  // Handle grip
+  const gripMat = new THREE.MeshStandardMaterial({ color: 0x1a8a74, metalness: 0.3, roughness: 0.6 });
+  const grip = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.2, 12), gripMat);
+  grip.rotation.z = Math.PI / 2;
+  grip.position.set(-0.15, crankArmLength, 0);
+  crankGroup.add(grip);
+
+  // Crank axle
+  const cAxle = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.3, 12), axleMat);
+  cAxle.rotation.z = Math.PI / 2;
+  cAxle.position.set(-0.15, 0, 0);
+  crankGroup.add(cAxle);
+
+  // Cable (rope)
+  const cableMat = new THREE.LineBasicMaterial({ color: 0xda3633, linewidth: 2 });
+  const cableGeo = new THREE.BufferGeometry();
+  const cablePos = new Float32Array(6);
+  cableGeo.setAttribute('position', new THREE.BufferAttribute(cablePos, 3));
+  cableLine = new THREE.Line(cableGeo, cableMat);
+  scene.add(cableLine);
+
+  // Cable - thicker visible version
+  const ropeGeo = new THREE.CylinderGeometry(0.025, 0.025, 1, 8);
+  const ropeMat = new THREE.MeshStandardMaterial({ color: 0xda3633, roughness: 0.8 });
+  const ropeMesh = new THREE.Mesh(ropeGeo, ropeMat);
+  ropeMesh.name = 'ropeVisual';
+  scene.add(ropeMesh);
+
+  // Weight block
+  const weightMat = new THREE.MeshStandardMaterial({ color: 0x8b5cf6, metalness: 0.4, roughness: 0.5 });
+  weightMesh = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.5, 0.5), weightMat);
+  weightMesh.position.set(0.4, -0.5, 0);
+  weightMesh.castShadow = true;
+  scene.add(weightMesh);
+
+  // Weight label
+  const hookGeo = new THREE.TorusGeometry(0.06, 0.015, 8, 16, Math.PI);
+  const hookMat = new THREE.MeshStandardMaterial({ color: 0xaaaaaa, metalness: 0.8 });
+  const hook = new THREE.Mesh(hookGeo, hookMat);
+  hook.position.set(0.4, -0.2, 0);
+  hook.rotation.z = Math.PI;
+  scene.add(hook);
+
+  // Pulley wheel at top
+  const pulleyMat = new THREE.MeshStandardMaterial({ color: 0x666666, metalness: 0.7, roughness: 0.3 });
+  const pulley = new THREE.Mesh(new THREE.TorusGeometry(0.12, 0.04, 12, 24), pulleyMat);
+  pulley.position.set(0.4, 2.65, 0);
+  pulley.rotation.x = Math.PI / 2;
+  scene.add(pulley);
+
+  // Pulley bracket
+  const bracket = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.15, 0.06), frameMat);
+  bracket.position.set(0.4, 2.58, 0);
+  scene.add(bracket);
+}
+
+// === DIRECTION ===
+function setDirection(d) {
+  direction = d;
+  document.getElementById('btnCW').classList.toggle('active', d === 1);
+  document.getElementById('btnStop').classList.toggle('active', d === 0);
+  document.getElementById('btnCCW').classList.toggle('active', d === -1);
+}
+
+// === ANIMATE ===
+function animate() {
+  requestAnimationFrame(animate);
+
+  const speedPct = parseFloat(document.getElementById('crankSpeed').value) / 100;
+  const weight = parseFloat(document.getElementById('weight').value);
+  const gearRatio = parseFloat(document.getElementById('gearRatio').value);
+
+  // Update UI value displays
+  document.getElementById('crankSpeedVal').textContent = Math.round(speedPct * 100) + '%';
+  document.getElementById('weightVal').textContent = weight + ' kg';
+  document.getElementById('gearRatioVal').textContent = gearRatio + ':1';
+
+  // Physics
+  const crankRPM = speedPct * 60 * Math.abs(direction);
+  const drumRPM = crankRPM / gearRatio;
+  const crankRadPerSec = (crankRPM / 60) * 2 * Math.PI;
+  const drumRadPerSec = crankRadPerSec / gearRatio;
+  const loadForce = weight * 9.81;
+  const outputTorque = loadForce * drumRadius;
+  const inputTorque = outputTorque / (gearRatio * efficiency);
+  const cableSpeed = drumRadPerSec * drumRadius;
+  const power = outputTorque * drumRadPerSec;
+  const mechAdvantage = gearRatio;
+
+  // Rotate crank
+  const dt = 1 / 60;
+  if (direction !== 0) {
+    crankAngle += crankRadPerSec * dt * direction;
+    crankGroup.rotation.x = crankAngle;
+
+    // Drum gear rotates opposite, scaled by gear ratio
+    drumGear.rotation.x = -crankAngle / gearRatio;
+    drum.rotation.x = -crankAngle / gearRatio;
+
+    // Lift height
+    liftHeight += cableSpeed * dt * direction;
+    liftHeight = Math.max(0, Math.min(liftHeight, 4));
+  }
+
+  // Update weight position
+  const baseWeightY = -0.5;
+  weightMesh.position.y = baseWeightY + liftHeight;
+
+  // Update rope visual
+  const ropeVis = scene.getObjectByName('ropeVisual');
+  if (ropeVis) {
+    const topY = 2.65;
+    const bottomY = weightMesh.position.y + 0.3;
+    const ropeLen = topY - bottomY;
+    ropeVis.scale.y = Math.max(0.01, ropeLen);
+    ropeVis.position.set(0.4, (topY + bottomY) / 2, 0);
+  }
+
+  // Update cable line
+  const pos = cableLine.geometry.attributes.position.array;
+  // From drum to pulley
+  pos[0] = 0; pos[1] = 2.0; pos[2] = drumRadius;
+  pos[3] = 0.4; pos[4] = 2.65; pos[5] = 0;
+  cableLine.geometry.attributes.position.needsUpdate = true;
+
+  // Scale weight by mass
+  const s = 0.3 + (weight / 500) * 0.7;
+  weightMesh.scale.set(s, s, s);
+
+  // Update data display
+  document.getElementById('dCrankRPM').innerHTML = crankRPM.toFixed(1) + '<span class="unit">rpm</span>';
+  document.getElementById('dDrumRPM').innerHTML = drumRPM.toFixed(1) + '<span class="unit">rpm</span>';
+  document.getElementById('dInputTorque').innerHTML = inputTorque.toFixed(1) + '<span class="unit">N·m</span>';
+  document.getElementById('dOutputTorque').innerHTML = outputTorque.toFixed(1) + '<span class="unit">N·m</span>';
+  document.getElementById('dCableSpeed').innerHTML = cableSpeed.toFixed(2) + '<span class="unit">m/s</span>';
+  document.getElementById('dPower').innerHTML = power.toFixed(1) + '<span class="unit">W</span>';
+  document.getElementById('dMA').innerHTML = mechAdvantage.toFixed(1) + '<span class="unit">x</span>';
+  document.getElementById('dEfficiency').innerHTML = (efficiency * 100).toFixed(0) + '<span class="unit">%</span>';
+  document.getElementById('dLoadForce').innerHTML = loadForce.toFixed(0) + '<span class="unit">N</span>';
+  document.getElementById('dLiftHeight').innerHTML = liftHeight.toFixed(2) + '<span class="unit">m</span>';
+
+  controls.update();
+  renderer.render(scene, camera);
+}
+
+// === RESIZE ===
+window.addEventListener('resize', () => {
+  const c = document.getElementById('canvas-container');
+  camera.aspect = c.clientWidth / c.clientHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(c.clientWidth, c.clientHeight);
+});
+
+// Keyboard shortcuts
+window.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowRight') setDirection(1);
+  else if (e.key === 'ArrowLeft') setDirection(-1);
+  else if (e.key === ' ') { e.preventDefault(); setDirection(0); }
+});
+
+init();
+</script>
+</body>
+</html>
