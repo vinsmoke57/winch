@@ -287,23 +287,7 @@ function buildWinch() {
   crankGroup.add(crankGear);
 
   // Crank arm
-  const armMat = new THREE.MeshStandardMaterial({ color: 0x24b59c, metalness: 0.5, roughness: 0.4 });
-  const arm = new THREE.Mesh(new THREE.BoxGeometry(0.08, crankArmLength, 0.08), armMat);
-  arm.position.set(0, crankArmLength / 2, 0);
-  arm.castShadow = true;
-  crankGroup.add(arm);
-
-  // Handle knob
-  const knob = new THREE.Mesh(new THREE.SphereGeometry(0.08, 16, 16), armMat);
-  knob.position.set(0, crankArmLength, 0);
-  crankGroup.add(knob);
-
-  // Handle grip
-  const gripMat = new THREE.MeshStandardMaterial({ color: 0x1a8a74, metalness: 0.3, roughness: 0.6 });
-  const grip = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.2, 12), gripMat);
-  grip.rotation.z = Math.PI / 2;
-  grip.position.set(-0.15, crankArmLength, 0);
-  crankGroup.add(grip);
+ 
 
   // Crank axle
   const cAxle = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.3, 12), axleMat);
