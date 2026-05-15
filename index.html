@@ -1,17 +1,36 @@
+Sometimes when merging two complex files, a small CSS conflict, a duplicate tag, or the exact placement of the canvas in the HTML structure can cause the layers to block each other, even with `pointer-events: none;` applied.
+
+To fix this immediately, let's bypass the troubleshooting and use a clean, fully integrated version.
+
+Here is the complete, merged code for your `winch/index.html` file. You can replace everything in your current file with this. It perfectly overlays the dots, preserves the 3D mechanism interactions (OrbitControls), and ensures all the buttons remain clickable.
+
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>3D Manual Winch Mechanism</title>
+<title>3D Manual Winch Mechanism with Dot Effect</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:#0a0a0f;color:#e0e0e0;font-family:'Segoe UI',system-ui,sans-serif;overflow:hidden;height:100vh}
-#canvas-container{position:absolute;top:0;left:0;width:75%;height:100%}
+
+#canvas-container{position:absolute;top:0;left:0;width:75%;height:100%; z-index: 1;}
 canvas{display:block}
 
+/* --- DOT EFFECT CANVAS --- */
+#dotCanvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none !important; /* Forces clicks to pass through to the 3D scene */
+    z-index: 9999; /* Keeps dots on top of the side panel */
+}
+
 /* Right Panel */
-#panel{position:absolute;top:0;right:0;width:25%;height:100%;background:linear-gradient(180deg,#0d1117 0%,#161b22 50%,#0d1117 100%);border-left:1px solid #30363d;display:flex;flex-direction:column;overflow-y:auto}
+#panel{position:absolute;top:0;right:0;width:25%;height:100%;background:linear-gradient(180deg,#0d1117 0%,#161b22 50%,#0d1117 100%);border-left:1px solid #30363d;display:flex;flex-direction:column;overflow-y:auto; z-index: 10;}
 .panel-header{padding:20px;text-align:center;border-bottom:1px solid #30363d;background:linear-gradient(135deg,rgba(36,181,156,0.1),rgba(0,120,215,0.1))}
 .panel-header h1{font-size:1.3em;font-weight:700;background:linear-gradient(135deg,#24b59c,#0078d7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:4px}
 .panel-header p{font-size:0.75em;color:#8b949e}
@@ -54,6 +73,9 @@ canvas{display:block}
 </style>
 </head>
 <body>
+
+<canvas id="dotCanvas"></canvas>
+
 <div id="canvas-container"></div>
 
 <div id="panel">
@@ -123,7 +145,9 @@ canvas{display:block}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 <script>
-// === GLOBALS ===
+// ==========================================
+// === THREE.JS WINCH MECHANISM SCRIPT ===
+// ==========================================
 let scene, camera, renderer, controls;
 let crankGroup, crankGear, drumGear, drum, cableLine, weightMesh;
 let direction = 0, crankAngle = 0, liftHeight = 0;
@@ -131,7 +155,6 @@ const efficiency = 0.85;
 const drumRadius = 0.4;
 const crankArmLength = 0.6;
 
-// === INIT ===
 function init() {
   const container = document.getElementById('canvas-container');
   scene = new THREE.Scene();
@@ -153,7 +176,6 @@ function init() {
   controls.dampingFactor = 0.05;
   controls.target.set(0, 1, 0);
 
-  // Lights
   const amb = new THREE.AmbientLight(0x404060, 0.6);
   scene.add(amb);
   const dir = new THREE.DirectionalLight(0xffffff, 0.9);
@@ -165,7 +187,6 @@ function init() {
   pt.position.set(-3, 5, 3);
   scene.add(pt);
 
-  // Grid
   const grid = new THREE.GridHelper(20, 40, 0x1a1a2e, 0x1a1a2e);
   scene.add(grid);
 
@@ -173,17 +194,14 @@ function init() {
   animate();
 }
 
-// === GEAR TOOTH SHAPE ===
 function createGear(innerR, outerR, teeth, thickness, color) {
   const group = new THREE.Group();
-  // Base disc
   const discGeo = new THREE.CylinderGeometry(innerR, innerR, thickness, 32);
   const mat = new THREE.MeshStandardMaterial({ color, metalness: 0.7, roughness: 0.3 });
   const disc = new THREE.Mesh(discGeo, mat);
   disc.rotation.x = 0;
   group.add(disc);
 
-  // Teeth
   const toothW = (2 * Math.PI * innerR / teeth) * 0.45;
   const toothH = outerR - innerR;
   const toothGeo = new THREE.BoxGeometry(toothW, thickness, toothH);
@@ -196,7 +214,6 @@ function createGear(innerR, outerR, teeth, thickness, color) {
     group.add(tooth);
   }
 
-  // Center hub
   const hubGeo = new THREE.CylinderGeometry(innerR * 0.2, innerR * 0.2, thickness * 1.4, 16);
   const hubMat = new THREE.MeshStandardMaterial({ color: 0x333333, metalness: 0.9, roughness: 0.2 });
   group.add(new THREE.Mesh(hubGeo, hubMat));
@@ -204,35 +221,28 @@ function createGear(innerR, outerR, teeth, thickness, color) {
   return group;
 }
 
-// === BUILD WINCH ===
 function buildWinch() {
   const frameMat = new THREE.MeshStandardMaterial({ color: 0xff6b35, metalness: 0.6, roughness: 0.4 });
-
-  // Base plate
   const base = new THREE.Mesh(new THREE.BoxGeometry(3, 0.15, 2), frameMat);
   base.position.y = 0.075;
   base.receiveShadow = true;
   scene.add(base);
 
-  // Left pillar
   const pillarGeo = new THREE.BoxGeometry(0.15, 2.5, 0.15);
   const lp = new THREE.Mesh(pillarGeo, frameMat);
   lp.position.set(-1.2, 1.4, 0);
   lp.castShadow = true;
   scene.add(lp);
 
-  // Right pillar
   const rp = new THREE.Mesh(pillarGeo, frameMat);
   rp.position.set(1.2, 1.4, 0);
   rp.castShadow = true;
   scene.add(rp);
 
-  // Top bar
   const tb = new THREE.Mesh(new THREE.BoxGeometry(2.55, 0.12, 0.12), frameMat);
   tb.position.set(0, 2.65, 0);
   scene.add(tb);
 
-  // Cross braces
   const braceMat = new THREE.MeshStandardMaterial({ color: 0xcc5522, metalness: 0.5, roughness: 0.5 });
   const braceGeo = new THREE.BoxGeometry(0.06, 1.8, 0.06);
   const b1 = new THREE.Mesh(braceGeo, braceMat);
@@ -244,14 +254,12 @@ function buildWinch() {
   b2.rotation.z = -0.3;
   scene.add(b2);
 
-  // Axle
   const axleMat = new THREE.MeshStandardMaterial({ color: 0x888888, metalness: 0.8, roughness: 0.2 });
   const axle = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 3.2, 16), axleMat);
   axle.rotation.z = Math.PI / 2;
   axle.position.set(0, 2.0, 0);
   scene.add(axle);
 
-  // Drum
   const drumMat = new THREE.MeshStandardMaterial({ color: 0xc0c0c0, metalness: 0.7, roughness: 0.3 });
   drum = new THREE.Mesh(new THREE.CylinderGeometry(drumRadius, drumRadius, 1.5, 32), drumMat);
   drum.rotation.z = Math.PI / 2;
@@ -259,7 +267,6 @@ function buildWinch() {
   drum.castShadow = true;
   scene.add(drum);
 
-  // Drum flanges
   const flangeGeo = new THREE.CylinderGeometry(drumRadius + 0.12, drumRadius + 0.12, 0.05, 32);
   const fl = new THREE.Mesh(flangeGeo, drumMat);
   fl.rotation.z = Math.PI / 2;
@@ -270,32 +277,40 @@ function buildWinch() {
   fr.position.set(0.75, 2.0, 0);
   scene.add(fr);
 
-  // Drum gear (large, on the left side)
   drumGear = createGear(0.55, 0.7, 20, 0.12, 0x58a6ff);
   drumGear.rotation.z = Math.PI / 2;
   drumGear.position.set(-1.0, 2.0, 0);
   scene.add(drumGear);
 
-  // Crank group (pinion gear + arm + handle)
   crankGroup = new THREE.Group();
   crankGroup.position.set(-1.0, 1.1, 0);
   scene.add(crankGroup);
 
-  // Crank gear (small pinion)
   crankGear = createGear(0.2, 0.3, 8, 0.12, 0xffd700);
   crankGear.rotation.z = Math.PI / 2;
   crankGroup.add(crankGear);
 
-  // Crank arm
- 
+  const armMat = new THREE.MeshStandardMaterial({ color: 0x24b59c, metalness: 0.5, roughness: 0.4 });
+  const arm = new THREE.Mesh(new THREE.BoxGeometry(0.08, crankArmLength, 0.08), armMat);
+  arm.position.set(0, crankArmLength / 2, 0);
+  arm.castShadow = true;
+  crankGroup.add(arm);
 
-  // Crank axle
+  const knob = new THREE.Mesh(new THREE.SphereGeometry(0.08, 16, 16), armMat);
+  knob.position.set(0, crankArmLength, 0);
+  crankGroup.add(knob);
+
+  const gripMat = new THREE.MeshStandardMaterial({ color: 0x1a8a74, metalness: 0.3, roughness: 0.6 });
+  const grip = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.2, 12), gripMat);
+  grip.rotation.z = Math.PI / 2;
+  grip.position.set(-0.15, crankArmLength, 0);
+  crankGroup.add(grip);
+
   const cAxle = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.3, 12), axleMat);
   cAxle.rotation.z = Math.PI / 2;
   cAxle.position.set(-0.15, 0, 0);
   crankGroup.add(cAxle);
 
-  // Cable (rope)
   const cableMat = new THREE.LineBasicMaterial({ color: 0xda3633, linewidth: 2 });
   const cableGeo = new THREE.BufferGeometry();
   const cablePos = new Float32Array(6);
@@ -303,21 +318,18 @@ function buildWinch() {
   cableLine = new THREE.Line(cableGeo, cableMat);
   scene.add(cableLine);
 
-  // Cable - thicker visible version
   const ropeGeo = new THREE.CylinderGeometry(0.025, 0.025, 1, 8);
   const ropeMat = new THREE.MeshStandardMaterial({ color: 0xda3633, roughness: 0.8 });
   const ropeMesh = new THREE.Mesh(ropeGeo, ropeMat);
   ropeMesh.name = 'ropeVisual';
   scene.add(ropeMesh);
 
-  // Weight block
   const weightMat = new THREE.MeshStandardMaterial({ color: 0x8b5cf6, metalness: 0.4, roughness: 0.5 });
   weightMesh = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.5, 0.5), weightMat);
   weightMesh.position.set(0.4, -0.5, 0);
   weightMesh.castShadow = true;
   scene.add(weightMesh);
 
-  // Weight label
   const hookGeo = new THREE.TorusGeometry(0.06, 0.015, 8, 16, Math.PI);
   const hookMat = new THREE.MeshStandardMaterial({ color: 0xaaaaaa, metalness: 0.8 });
   const hook = new THREE.Mesh(hookGeo, hookMat);
@@ -325,20 +337,17 @@ function buildWinch() {
   hook.rotation.z = Math.PI;
   scene.add(hook);
 
-  // Pulley wheel at top
   const pulleyMat = new THREE.MeshStandardMaterial({ color: 0x666666, metalness: 0.7, roughness: 0.3 });
   const pulley = new THREE.Mesh(new THREE.TorusGeometry(0.12, 0.04, 12, 24), pulleyMat);
   pulley.position.set(0.4, 2.65, 0);
   pulley.rotation.x = Math.PI / 2;
   scene.add(pulley);
 
-  // Pulley bracket
   const bracket = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.15, 0.06), frameMat);
   bracket.position.set(0.4, 2.58, 0);
   scene.add(bracket);
 }
 
-// === DIRECTION ===
 function setDirection(d) {
   direction = d;
   document.getElementById('btnCW').classList.toggle('active', d === 1);
@@ -346,7 +355,6 @@ function setDirection(d) {
   document.getElementById('btnCCW').classList.toggle('active', d === -1);
 }
 
-// === ANIMATE ===
 function animate() {
   requestAnimationFrame(animate);
 
@@ -354,12 +362,10 @@ function animate() {
   const weight = parseFloat(document.getElementById('weight').value);
   const gearRatio = parseFloat(document.getElementById('gearRatio').value);
 
-  // Update UI value displays
   document.getElementById('crankSpeedVal').textContent = Math.round(speedPct * 100) + '%';
   document.getElementById('weightVal').textContent = weight + ' kg';
   document.getElementById('gearRatioVal').textContent = gearRatio + ':1';
 
-  // Physics
   const crankRPM = speedPct * 60 * Math.abs(direction);
   const drumRPM = crankRPM / gearRatio;
   const crankRadPerSec = (crankRPM / 60) * 2 * Math.PI;
@@ -371,26 +377,20 @@ function animate() {
   const power = outputTorque * drumRadPerSec;
   const mechAdvantage = gearRatio;
 
-  // Rotate crank
   const dt = 1 / 60;
   if (direction !== 0) {
     crankAngle += crankRadPerSec * dt * direction;
     crankGroup.rotation.x = crankAngle;
-
-    // Drum gear rotates opposite, scaled by gear ratio
     drumGear.rotation.x = -crankAngle / gearRatio;
     drum.rotation.x = -crankAngle / gearRatio;
 
-    // Lift height
     liftHeight += cableSpeed * dt * direction;
     liftHeight = Math.max(0, Math.min(liftHeight, 4));
   }
 
-  // Update weight position
   const baseWeightY = -0.5;
   weightMesh.position.y = baseWeightY + liftHeight;
 
-  // Update rope visual
   const ropeVis = scene.getObjectByName('ropeVisual');
   if (ropeVis) {
     const topY = 2.65;
@@ -400,18 +400,14 @@ function animate() {
     ropeVis.position.set(0.4, (topY + bottomY) / 2, 0);
   }
 
-  // Update cable line
   const pos = cableLine.geometry.attributes.position.array;
-  // From drum to pulley
   pos[0] = 0; pos[1] = 2.0; pos[2] = drumRadius;
   pos[3] = 0.4; pos[4] = 2.65; pos[5] = 0;
   cableLine.geometry.attributes.position.needsUpdate = true;
 
-  // Scale weight by mass
   const s = 0.3 + (weight / 500) * 0.7;
   weightMesh.scale.set(s, s, s);
 
-  // Update data display
   document.getElementById('dCrankRPM').innerHTML = crankRPM.toFixed(1) + '<span class="unit">rpm</span>';
   document.getElementById('dDrumRPM').innerHTML = drumRPM.toFixed(1) + '<span class="unit">rpm</span>';
   document.getElementById('dInputTorque').innerHTML = inputTorque.toFixed(1) + '<span class="unit">N·m</span>';
@@ -427,7 +423,6 @@ function animate() {
   renderer.render(scene, camera);
 }
 
-// === RESIZE ===
 window.addEventListener('resize', () => {
   const c = document.getElementById('canvas-container');
   camera.aspect = c.clientWidth / c.clientHeight;
@@ -435,7 +430,6 @@ window.addEventListener('resize', () => {
   renderer.setSize(c.clientWidth, c.clientHeight);
 });
 
-// Keyboard shortcuts
 window.addEventListener('keydown', (e) => {
   if (e.key === 'ArrowRight') setDirection(1);
   else if (e.key === 'ArrowLeft') setDirection(-1);
@@ -443,6 +437,72 @@ window.addEventListener('keydown', (e) => {
 });
 
 init();
+
+// ==========================================
+// === DOT FOLLOW EFFECT SCRIPT ===
+// ==========================================
+const dotCanvas = document.getElementById('dotCanvas');
+const dotCtx = dotCanvas.getContext('2d');
+let dWidth, dHeight;
+let mouse = { x: null, y: null };
+const numDots = 25;
+const dots = [];
+
+function resizeDots() {
+    dWidth = dotCanvas.width = window.innerWidth;
+    dHeight = dotCanvas.height = window.innerHeight;
+    if (mouse.x === null) {
+        mouse.x = dWidth / 2;
+        mouse.y = dHeight / 2;
+    }
+}
+window.addEventListener('resize', resizeDots);
+resizeDots();
+
+window.addEventListener('mousemove', (e) => {
+    mouse.x = e.clientX;
+    mouse.y = e.clientY;
+});
+window.addEventListener('touchmove', (e) => {
+    mouse.x = e.touches[0].clientX;
+    mouse.y = e.touches[0].clientY;
+});
+
+for (let i = 0; i < numDots; i++) {
+    dots.push({
+        x: dWidth / 2, 
+        y: dHeight / 2,
+        size: Math.max(0.5, (numDots - i) * 0.4 + 2)
+    });
+}
+
+function animateDots() {
+    dotCtx.clearRect(0, 0, dWidth, dHeight);
+    let targetX = mouse.x;
+    let targetY = mouse.y;
+
+    for (let i = 0; i < numDots; i++) {
+        const dot = dots[i];
+        
+        dot.x += (targetX - dot.x) * 0.35;
+        dot.y += (targetY - dot.y) * 0.35;
+        
+        const hue = 190 + (i / numDots) * 70;
+        const alpha = 1 - (i / numDots) * 0.8;
+        
+        dotCtx.fillStyle = `hsla(${hue}, 100%, 65%, ${alpha})`;
+        dotCtx.beginPath();
+        dotCtx.arc(dot.x, dot.y, dot.size, 0, Math.PI * 2);
+        dotCtx.fill();
+
+        targetX = dot.x;
+        targetY = dot.y;
+    }
+    requestAnimationFrame(animateDots);
+}
+animateDots();
 </script>
 </body>
 </html>
+
+```
