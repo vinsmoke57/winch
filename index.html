@@ -6,7 +6,17 @@
 <title>3D Manual Winch Mechanism</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:#0a0a0f;color:#e0e0e0;font-family:'Segoe UI',system-ui,sans-serif;overflow:hidden;height:100vh}
+  /* --- DOT EFFECT CSS --- */
+#dotCanvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none; /* Crucial: lets you click the buttons and rotate the 3D model through the canvas! */
+    z-index: 1000; /* Puts the dots on top of everything */
+}
+body{background:#0a0a0f;color:#e0e0e0;font-family:'Segoe UI',system-ui,sans-serif;overflow:hidden;height:100vh;cursor: none}
 #canvas-container{position:absolute;top:0;left:0;width:75%;height:100%}
 canvas{display:block}
 
@@ -54,6 +64,10 @@ canvas{display:block}
 </style>
 </head>
 <body>
+  <body>
+<canvas id="dotCanvas"></canvas> 
+
+<div id="canvas-container"></div>
 <div id="canvas-container"></div>
 
 <div id="panel">
@@ -459,6 +473,72 @@ window.addEventListener('keydown', (e) => {
 });
 
 init();
+  // ==========================================
+// === DOT FOLLOW EFFECT JAVASCRIPT ===
+// ==========================================
+const dotCanvas = document.getElementById('dotCanvas');
+const dotCtx = dotCanvas.getContext('2d');
+let dWidth, dHeight;
+let mouse = { x: null, y: null };
+const numDots = 25;
+const dots = [];
+
+function resizeDots() {
+    dWidth = dotCanvas.width = window.innerWidth;
+    dHeight = dotCanvas.height = window.innerHeight;
+    if (mouse.x === null) {
+        mouse.x = dWidth / 2;
+        mouse.y = dHeight / 2;
+    }
+}
+window.addEventListener('resize', resizeDots);
+resizeDots();
+
+// Track mouse
+window.addEventListener('mousemove', (e) => {
+    mouse.x = e.clientX;
+    mouse.y = e.clientY;
+});
+window.addEventListener('touchmove', (e) => {
+    mouse.x = e.touches[0].clientX;
+    mouse.y = e.touches[0].clientY;
+});
+
+// Initialize dots
+for (let i = 0; i < numDots; i++) {
+    dots.push({
+        x: dWidth / 2, 
+        y: dHeight / 2,
+        size: Math.max(0.5, (numDots - i) * 0.4 + 2)
+    });
+}
+
+// Separate animation loop just for the dots
+function animateDots() {
+    dotCtx.clearRect(0, 0, dWidth, dHeight);
+    let targetX = mouse.x;
+    let targetY = mouse.y;
+
+    for (let i = 0; i < numDots; i++) {
+        const dot = dots[i];
+        
+        dot.x += (targetX - dot.x) * 0.35;
+        dot.y += (targetY - dot.y) * 0.35;
+        
+        const hue = 190 + (i / numDots) * 70;
+        const alpha = 1 - (i / numDots) * 0.8;
+        
+        dotCtx.fillStyle = `hsla(${hue}, 100%, 65%, ${alpha})`;
+        dotCtx.beginPath();
+        dotCtx.arc(dot.x, dot.y, dot.size, 0, Math.PI * 2);
+        dotCtx.fill();
+
+        targetX = dot.x;
+        targetY = dot.y;
+    }
+    requestAnimationFrame(animateDots);
+}
+animateDots();
 </script>
 </body>
 </html>
