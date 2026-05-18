@@ -6,51 +6,52 @@
 <title>3D Manual Winch Mechanism</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:#0a0a0f;color:#e0e0e0;font-family:'Segoe UI',system-ui,sans-serif;overflow:hidden;height:100vh}
+body{background:#f4f5f8;color:#2c3e50;font-family:'Segoe UI',system-ui,sans-serif;overflow:hidden;height:100vh}
 #canvas-container{position:absolute;top:0;left:0;width:75%;height:100%}
 canvas{display:block}
 
-/* Right Panel */
-#panel{position:absolute;top:0;right:0;width:25%;height:100%;background:linear-gradient(180deg,#0d1117 0%,#161b22 50%,#0d1117 100%);border-left:1px solid #30363d;display:flex;flex-direction:column;overflow-y:auto}
-.panel-header{padding:20px;text-align:center;border-bottom:1px solid #30363d;background:linear-gradient(135deg,rgba(36,181,156,0.1),rgba(0,120,215,0.1))}
-.panel-header h1{font-size:1.3em;font-weight:700;background:linear-gradient(135deg,#24b59c,#0078d7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:4px}
-.panel-header p{font-size:0.75em;color:#8b949e}
+/* Right Panel - Light Theme */
+#panel{position:absolute;top:0;right:0;width:25%;height:100%;background:linear-gradient(180deg,#ffffff 0%,#f8fafd 100%);border-left:1px solid #dcdfe6;display:flex;flex-direction:column;overflow-y:auto;box-shadow:-4px 0 16px rgba(0,0,0,0.05)}
+.panel-header{padding:20px;text-align:center;border-bottom:1px solid #e4e7ed;background:linear-gradient(135deg,rgba(36,181,156,0.05),rgba(0,120,215,0.05))}
+.panel-header h1{font-size:1.3em;font-weight:700;background:linear-gradient(135deg,#1abc9c,#3498db);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:4px}
+.panel-header p{font-size:0.75em;color:#7f8c8d}
 
-.section{padding:16px 20px;border-bottom:1px solid #21262d}
-.section-title{font-size:0.7em;text-transform:uppercase;letter-spacing:2px;color:#24b59c;margin-bottom:12px;font-weight:600}
+.section{padding:16px 20px;border-bottom:1px solid #ebd0f0;border-bottom:1px solid #e4e7ed}
+.section-title{font-size:0.7em;text-transform:uppercase;letter-spacing:2px;color:#1abc9c;margin-bottom:12px;font-weight:600}
 
-/* Controls */
+/* Controls - Light Theme */
 .control-group{margin-bottom:14px}
-.control-group label{display:block;font-size:0.8em;color:#c9d1d9;margin-bottom:6px}
-.control-group input[type=range]{width:100%;height:6px;-webkit-appearance:none;background:#21262d;border-radius:3px;outline:none}
-.control-group input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:linear-gradient(135deg,#24b59c,#1a8a74);cursor:pointer;box-shadow:0 0 8px rgba(36,181,156,0.4)}
-.control-value{font-size:0.85em;color:#24b59c;font-weight:600;float:right;margin-top:-22px}
+.control-group label{display:block;font-size:0.8em;color:#34495e;margin-bottom:6px;font-weight:500}
+.control-group input[type=range]{width:100%;height:6px;-webkit-appearance:none;background:#e4e7ed;border-radius:3px;outline:none}
+.control-group input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:linear-gradient(135deg,#1abc9c,#16a085);cursor:pointer;box-shadow:0 2px 6px rgba(26,188,156,0.3)}
+.control-value{font-size:0.85em;color:#1abc9c;font-weight:600;float:right;margin-top:-22px}
 
-/* Data Display */
+/* Data Display - Light Theme */
 .data-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.data-card{background:rgba(33,38,45,0.8);border:1px solid #30363d;border-radius:8px;padding:12px;text-align:center;transition:border-color 0.3s}
-.data-card:hover{border-color:#24b59c}
-.data-card .label{font-size:0.65em;text-transform:uppercase;letter-spacing:1px;color:#8b949e;margin-bottom:4px}
-.data-card .value{font-size:1.3em;font-weight:700;color:#e6edf3}
-.data-card .unit{font-size:0.65em;color:#58a6ff;margin-left:2px}
-.data-card.highlight .value{color:#24b59c}
+.data-card{background:#ffffff;border:1px solid #e4e7ed;border-radius:8px;padding:12px;text-align:center;transition:all 0.3s;box-shadow:0 2px 4px rgba(0,0,0,0.02)}
+.data-card:hover{border-color:#1abc9c;box-shadow:0 4px 8px rgba(26,188,156,0.1)}
+.data-card .label{font-size:0.65em;text-transform:uppercase;letter-spacing:1px;color:#7f8c8d;margin-bottom:4px}
+.data-card .value{font-size:1.3em;font-weight:700;color:#2c3e50}
+.data-card .unit{font-size:0.65em;color:#2980b9;margin-left:2px}
+.data-card.highlight{background:#fafbfc;border-color:#dcdfe6}
+.data-card.highlight .value{color:#1abc9c}
 
-/* Buttons */
+/* Buttons - Light Theme */
 .btn-row{display:flex;gap:8px;margin-top:8px}
-.btn{flex:1;padding:10px;border:1px solid #30363d;border-radius:6px;background:rgba(33,38,45,0.6);color:#c9d1d9;font-size:0.8em;cursor:pointer;transition:all 0.2s;text-align:center}
-.btn:hover{background:rgba(36,181,156,0.15);border-color:#24b59c;color:#24b59c}
-.btn.active{background:rgba(36,181,156,0.2);border-color:#24b59c;color:#24b59c}
+.btn{flex:1;padding:10px;border:1px solid #dcdfe6;border-radius:6px;background:#ffffff;color:#606266;font-size:0.8em;cursor:pointer;transition:all 0.2s;text-align:center;font-weight:500}
+.btn:hover{background:rgba(26,188,156,0.08);border-color:#1abc9c;color:#1abc9c}
+.btn.active{background:rgba(26,188,156,0.15);border-color:#1abc9c;color:#16a085;box-shadow:inset 0 1px 3px rgba(0,0,0,0.05)}
 
-/* Status bar */
-.status-bar{margin-top:auto;padding:12px 20px;border-top:1px solid #30363d;background:rgba(13,17,23,0.8)}
-.status-indicator{display:flex;align-items:center;gap:8px;font-size:0.75em;color:#8b949e}
-.status-dot{width:8px;height:8px;border-radius:50%;background:#24b59c;box-shadow:0 0 6px rgba(36,181,156,0.6);animation:pulse 2s infinite}
+/* Status bar - Light Theme */
+.status-bar{margin-top:auto;padding:12px 20px;border-top:1px solid #e4e7ed;background:#fafbfc}
+.status-indicator{display:flex;align-items:center;gap:8px;font-size:0.75em;color:#7f8c8d}
+.status-dot{width:8px;height:8px;border-radius:50%;background:#1abc9c;box-shadow:0 0 6px rgba(26,188,156,0.6);animation:pulse 2s infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
 
-/* Legend */
+/* Legend - Light Theme */
 .legend{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
-.legend-item{display:flex;align-items:center;gap:5px;font-size:0.7em;color:#8b949e}
-.legend-color{width:12px;height:12px;border-radius:3px}
+.legend-item{display:flex;align-items:center;gap:5px;font-size:0.7em;color:#606266;font-weight:500}
+.legend-color{width:12px;height:12px;border-radius:3px;border:1px solid rgba(0,0,0,0.05)}
 </style>
 </head>
 <body>
@@ -135,8 +136,10 @@ const crankArmLength = 0.6;
 function init() {
   const container = document.getElementById('canvas-container');
   scene = new THREE.Scene();
-  scene.background = new THREE.Color(0x0a0a0f);
-  scene.fog = new THREE.FogExp2(0x0a0a0f, 0.04);
+  
+  // Adjusted for light background environment
+  scene.background = new THREE.Color(0xf4f5f8);
+  scene.fog = new THREE.FogExp2(0xf4f5f8, 0.04);
 
   camera = new THREE.PerspectiveCamera(50, container.clientWidth / container.clientHeight, 0.1, 100);
   camera.position.set(5, 4, 6);
@@ -153,20 +156,20 @@ function init() {
   controls.dampingFactor = 0.05;
   controls.target.set(0, 1, 0);
 
-  // Lights
-  const amb = new THREE.AmbientLight(0x404060, 0.6);
+  // Optimized Light setup for bright environments
+  const amb = new THREE.AmbientLight(0xffffff, 0.7);
   scene.add(amb);
-  const dir = new THREE.DirectionalLight(0xffffff, 0.9);
+  const dir = new THREE.DirectionalLight(0xffffff, 0.8);
   dir.position.set(5, 8, 5);
   dir.castShadow = true;
   dir.shadow.mapSize.set(1024, 1024);
   scene.add(dir);
-  const pt = new THREE.PointLight(0x24b59c, 0.5, 15);
+  const pt = new THREE.PointLight(0x1abc9c, 0.3, 15);
   pt.position.set(-3, 5, 3);
   scene.add(pt);
 
-  // Grid
-  const grid = new THREE.GridHelper(20, 40, 0x1a1a2e, 0x1a1a2e);
+  // Grid matching the light layout theme
+  const grid = new THREE.GridHelper(20, 40, 0xdcdfe6, 0xe4e7ed);
   scene.add(grid);
 
   buildWinch();
@@ -176,14 +179,11 @@ function init() {
 // === GEAR TOOTH SHAPE ===
 function createGear(innerR, outerR, teeth, thickness, color) {
   const group = new THREE.Group();
-  // Base disc
   const discGeo = new THREE.CylinderGeometry(innerR, innerR, thickness, 32);
-  const mat = new THREE.MeshStandardMaterial({ color, metalness: 0.7, roughness: 0.3 });
+  const mat = new THREE.MeshStandardMaterial({ color, metalness: 0.5, roughness: 0.4 });
   const disc = new THREE.Mesh(discGeo, mat);
-  disc.rotation.x = 0;
   group.add(disc);
 
-  // Teeth
   const toothW = (2 * Math.PI * innerR / teeth) * 0.45;
   const toothH = outerR - innerR;
   const toothGeo = new THREE.BoxGeometry(toothW, thickness, toothH);
@@ -196,9 +196,8 @@ function createGear(innerR, outerR, teeth, thickness, color) {
     group.add(tooth);
   }
 
-  // Center hub
   const hubGeo = new THREE.CylinderGeometry(innerR * 0.2, innerR * 0.2, thickness * 1.4, 16);
-  const hubMat = new THREE.MeshStandardMaterial({ color: 0x333333, metalness: 0.9, roughness: 0.2 });
+  const hubMat = new THREE.MeshStandardMaterial({ color: 0x555555, metalness: 0.8, roughness: 0.3 });
   group.add(new THREE.Mesh(hubGeo, hubMat));
 
   return group;
@@ -206,34 +205,29 @@ function createGear(innerR, outerR, teeth, thickness, color) {
 
 // === BUILD WINCH ===
 function buildWinch() {
-  const frameMat = new THREE.MeshStandardMaterial({ color: 0xff6b35, metalness: 0.6, roughness: 0.4 });
+  const frameMat = new THREE.MeshStandardMaterial({ color: 0xff6b35, metalness: 0.5, roughness: 0.4 });
 
-  // Base plate
   const base = new THREE.Mesh(new THREE.BoxGeometry(3, 0.15, 2), frameMat);
   base.position.y = 0.075;
   base.receiveShadow = true;
   scene.add(base);
 
-  // Left pillar
   const pillarGeo = new THREE.BoxGeometry(0.15, 2.5, 0.15);
   const lp = new THREE.Mesh(pillarGeo, frameMat);
   lp.position.set(-1.2, 1.4, 0);
   lp.castShadow = true;
   scene.add(lp);
 
-  // Right pillar
   const rp = new THREE.Mesh(pillarGeo, frameMat);
   rp.position.set(1.2, 1.4, 0);
   rp.castShadow = true;
   scene.add(rp);
 
-  // Top bar
   const tb = new THREE.Mesh(new THREE.BoxGeometry(2.55, 0.12, 0.12), frameMat);
   tb.position.set(0, 2.65, 0);
   scene.add(tb);
 
-  // Cross braces
-  const braceMat = new THREE.MeshStandardMaterial({ color: 0xcc5522, metalness: 0.5, roughness: 0.5 });
+  const braceMat = new THREE.MeshStandardMaterial({ color: 0xcc5522, metalness: 0.4, roughness: 0.5 });
   const braceGeo = new THREE.BoxGeometry(0.06, 1.8, 0.06);
   const b1 = new THREE.Mesh(braceGeo, braceMat);
   b1.position.set(-1.2, 1.2, 0);
@@ -244,22 +238,19 @@ function buildWinch() {
   b2.rotation.z = -0.3;
   scene.add(b2);
 
-  // Axle
-  const axleMat = new THREE.MeshStandardMaterial({ color: 0x888888, metalness: 0.8, roughness: 0.2 });
+  const axleMat = new THREE.MeshStandardMaterial({ color: 0x999999, metalness: 0.7, roughness: 0.3 });
   const axle = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 3.2, 16), axleMat);
   axle.rotation.z = Math.PI / 2;
   axle.position.set(0, 2.0, 0);
   scene.add(axle);
 
-  // Drum
-  const drumMat = new THREE.MeshStandardMaterial({ color: 0xc0c0c0, metalness: 0.7, roughness: 0.3 });
+  const drumMat = new THREE.MeshStandardMaterial({ color: 0xc0c0c0, metalness: 0.6, roughness: 0.4 });
   drum = new THREE.Mesh(new THREE.CylinderGeometry(drumRadius, drumRadius, 1.5, 32), drumMat);
   drum.rotation.z = Math.PI / 2;
   drum.position.set(0, 2.0, 0);
   drum.castShadow = true;
   scene.add(drum);
 
-  // Drum flanges
   const flangeGeo = new THREE.CylinderGeometry(drumRadius + 0.12, drumRadius + 0.12, 0.05, 32);
   const fl = new THREE.Mesh(flangeGeo, drumMat);
   fl.rotation.z = Math.PI / 2;
@@ -270,32 +261,24 @@ function buildWinch() {
   fr.position.set(0.75, 2.0, 0);
   scene.add(fr);
 
-  // Drum gear (large, on the left side)
   drumGear = createGear(0.55, 0.7, 20, 0.12, 0x58a6ff);
   drumGear.rotation.z = Math.PI / 2;
   drumGear.position.set(-1.0, 2.0, 0);
   scene.add(drumGear);
 
-  // Crank group (pinion gear + arm + handle)
   crankGroup = new THREE.Group();
   crankGroup.position.set(-1.0, 1.1, 0);
   scene.add(crankGroup);
 
-  // Crank gear (small pinion)
   crankGear = createGear(0.2, 0.3, 8, 0.12, 0xffd700);
   crankGear.rotation.z = Math.PI / 2;
   crankGroup.add(crankGear);
 
-  // Crank arm
- 
-
-  // Crank axle
   const cAxle = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.3, 12), axleMat);
   cAxle.rotation.z = Math.PI / 2;
   cAxle.position.set(-0.15, 0, 0);
   crankGroup.add(cAxle);
 
-  // Cable (rope)
   const cableMat = new THREE.LineBasicMaterial({ color: 0xda3633, linewidth: 2 });
   const cableGeo = new THREE.BufferGeometry();
   const cablePos = new Float32Array(6);
@@ -303,36 +286,31 @@ function buildWinch() {
   cableLine = new THREE.Line(cableGeo, cableMat);
   scene.add(cableLine);
 
-  // Cable - thicker visible version
   const ropeGeo = new THREE.CylinderGeometry(0.025, 0.025, 1, 8);
-  const ropeMat = new THREE.MeshStandardMaterial({ color: 0xda3633, roughness: 0.8 });
+  const ropeMat = new THREE.MeshStandardMaterial({ color: 0xda3633, roughness: 0.7 });
   const ropeMesh = new THREE.Mesh(ropeGeo, ropeMat);
   ropeMesh.name = 'ropeVisual';
   scene.add(ropeMesh);
 
-  // Weight block
-  const weightMat = new THREE.MeshStandardMaterial({ color: 0x8b5cf6, metalness: 0.4, roughness: 0.5 });
+  const weightMat = new THREE.MeshStandardMaterial({ color: 0x8b5cf6, metalness: 0.3, roughness: 0.6 });
   weightMesh = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.5, 0.5), weightMat);
   weightMesh.position.set(0.4, -0.5, 0);
   weightMesh.castShadow = true;
   scene.add(weightMesh);
 
-  // Weight label
   const hookGeo = new THREE.TorusGeometry(0.06, 0.015, 8, 16, Math.PI);
-  const hookMat = new THREE.MeshStandardMaterial({ color: 0xaaaaaa, metalness: 0.8 });
+  const hookMat = new THREE.MeshStandardMaterial({ color: 0x888888, metalness: 0.7 });
   const hook = new THREE.Mesh(hookGeo, hookMat);
   hook.position.set(0.4, -0.2, 0);
   hook.rotation.z = Math.PI;
   scene.add(hook);
 
-  // Pulley wheel at top
-  const pulleyMat = new THREE.MeshStandardMaterial({ color: 0x666666, metalness: 0.7, roughness: 0.3 });
+  const pulleyMat = new THREE.MeshStandardMaterial({ color: 0x777777, metalness: 0.6, roughness: 0.4 });
   const pulley = new THREE.Mesh(new THREE.TorusGeometry(0.12, 0.04, 12, 24), pulleyMat);
   pulley.position.set(0.4, 2.65, 0);
   pulley.rotation.x = Math.PI / 2;
   scene.add(pulley);
 
-  // Pulley bracket
   const bracket = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.15, 0.06), frameMat);
   bracket.position.set(0.4, 2.58, 0);
   scene.add(bracket);
@@ -354,12 +332,10 @@ function animate() {
   const weight = parseFloat(document.getElementById('weight').value);
   const gearRatio = parseFloat(document.getElementById('gearRatio').value);
 
-  // Update UI value displays
   document.getElementById('crankSpeedVal').textContent = Math.round(speedPct * 100) + '%';
   document.getElementById('weightVal').textContent = weight + ' kg';
   document.getElementById('gearRatioVal').textContent = gearRatio + ':1';
 
-  // Physics
   const crankRPM = speedPct * 60 * Math.abs(direction);
   const drumRPM = crankRPM / gearRatio;
   const crankRadPerSec = (crankRPM / 60) * 2 * Math.PI;
@@ -371,26 +347,20 @@ function animate() {
   const power = outputTorque * drumRadPerSec;
   const mechAdvantage = gearRatio;
 
-  // Rotate crank
   const dt = 1 / 60;
   if (direction !== 0) {
     crankAngle += crankRadPerSec * dt * direction;
     crankGroup.rotation.x = crankAngle;
 
-    // Drum gear rotates opposite, scaled by gear ratio
     drumGear.rotation.x = -crankAngle / gearRatio;
     drum.rotation.x = -crankAngle / gearRatio;
 
-    // Lift height
     liftHeight += cableSpeed * dt * direction;
     liftHeight = Math.max(0, Math.min(liftHeight, 4));
   }
 
-  // Update weight position
-  const baseWeightY = -0.5;
-  weightMesh.position.y = baseWeightY + liftHeight;
+  weightMesh.position.y = -0.5 + liftHeight;
 
-  // Update rope visual
   const ropeVis = scene.getObjectByName('ropeVisual');
   if (ropeVis) {
     const topY = 2.65;
@@ -400,18 +370,14 @@ function animate() {
     ropeVis.position.set(0.4, (topY + bottomY) / 2, 0);
   }
 
-  // Update cable line
   const pos = cableLine.geometry.attributes.position.array;
-  // From drum to pulley
   pos[0] = 0; pos[1] = 2.0; pos[2] = drumRadius;
   pos[3] = 0.4; pos[4] = 2.65; pos[5] = 0;
   cableLine.geometry.attributes.position.needsUpdate = true;
 
-  // Scale weight by mass
   const s = 0.3 + (weight / 500) * 0.7;
   weightMesh.scale.set(s, s, s);
 
-  // Update data display
   document.getElementById('dCrankRPM').innerHTML = crankRPM.toFixed(1) + '<span class="unit">rpm</span>';
   document.getElementById('dDrumRPM').innerHTML = drumRPM.toFixed(1) + '<span class="unit">rpm</span>';
   document.getElementById('dInputTorque').innerHTML = inputTorque.toFixed(1) + '<span class="unit">N·m</span>';
@@ -427,7 +393,6 @@ function animate() {
   renderer.render(scene, camera);
 }
 
-// === RESIZE ===
 window.addEventListener('resize', () => {
   const c = document.getElementById('canvas-container');
   camera.aspect = c.clientWidth / c.clientHeight;
@@ -435,7 +400,6 @@ window.addEventListener('resize', () => {
   renderer.setSize(c.clientWidth, c.clientHeight);
 });
 
-// Keyboard shortcuts
 window.addEventListener('keydown', (e) => {
   if (e.key === 'ArrowRight') setDirection(1);
   else if (e.key === 'ArrowLeft') setDirection(-1);
